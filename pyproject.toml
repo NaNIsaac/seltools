@@ -3,9 +3,7 @@ name = "seltools"
 version = "0.1.0"
 description = "Callable selectors for indexing data"
 readme = "README.md"
-authors = [
-    { name = "isaacR", email = "isaacyong@naver.com" }
-]
+authors = [{ name = "Isaac Yong", email = "isaacyong@naver.com" }]
 requires-python = ">=3.14"
 dependencies = []
 
