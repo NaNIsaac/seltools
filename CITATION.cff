@@ -8,6 +8,7 @@ authors:
     email: isaacyong@naver.com
     affiliation: "Sogang University"
 abstract: "Early-stage Python package providing callable selectors for indexing data."
+license: MIT
 keywords:
   - "indexing"
   - "selection"
