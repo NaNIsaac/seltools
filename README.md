@@ -16,10 +16,8 @@ uv sync
 
 ## Usage
 
-`Selection` is not re-exported from the package root yet, so import it from `seltools.core`:
-
 ```python
-from seltools.core import Selection
+from seltools import Selection
 
 Selection(1)([10, 20, 30])        # 20
 Selection(slice(0, 2))("abc")     # 'ab'
@@ -31,7 +29,7 @@ Selection("a")({"a": 5})          # 5
 ```
 src/seltools/
   core.py       Selection
-  __init__.py   placeholder hello() only
+  __init__.py   re-exports Selection
 ```
 
 ## Citation

@@ -1,2 +1,3 @@
-def hello() -> str:
-    return "Hello from seltools!"
+from seltools.core import Selection
+
+__all__ = ["Selection"]
