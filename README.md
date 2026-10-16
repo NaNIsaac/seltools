@@ -1,5 +1,7 @@
 # seltools
 
+Moved into a private scratch repo; no longer maintained.
+
 Early-stage Python package for callable selectors that index data.
 
 It currently contains one class, `Selection` in `src/seltools/core.py`. A `Selection` holds a key (index, slice or mapping key) and returns `data[key]` when called; it raises `TypeError` if the data is not subscriptable. The package has no dependencies and is not published on PyPI.
