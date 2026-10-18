@@ -1,0 +1,13 @@
+[package]
+name = "seltools-rs"
+version = "0.2.0"
+license = "MIT"
+description = "Rust iterators for the seltools Python package"
+edition = "2024"
+
+[lib]
+name = "_seltools"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.30.1"

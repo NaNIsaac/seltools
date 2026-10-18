@@ -1,12 +1,37 @@
 [project]
 name = "seltools"
-version = "0.1.0"
-description = "Callable selectors for indexing data"
+version = "0.2.0"
+description = "Reusable selections and wrap-around pairwise, windowed and getitem for anything with len() and []"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Isaac Yong", email = "isaacyong@naver.com" }]
 requires-python = ">=3.14"
 dependencies = []
+keywords = ["itertools", "circular", "pairwise", "windowed", "polygon", "numpy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+rust = ["seltools-rs==0.2.0"]
 
 [build-system]
-requires = ["uv_build>=0.11.32,<0.12.0"]
+requires = ["uv_build>=0.12.7,<0.13"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = ["more-itertools", "numpy", "pytest"]
+docs = ["numpy", "python-docs-theme", "sphinx"]
+
+[tool.uv.sources]
+seltools-rs = { path = "rust" }
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules"
+testpaths = ["src", "test_seltools.py"]

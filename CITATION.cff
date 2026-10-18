@@ -1,17 +1,18 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
-title: "seltools: Callable selectors for indexing data"
+title: "seltools: reusable selections and wrap-around access for anything with len() and []"
 authors:
   - family-names: Yong
     given-names: Isaac
     email: isaacyong@naver.com
     affiliation: "Sogang University"
-abstract: "Early-stage Python package providing callable selectors for indexing data."
+abstract: "Python package with circular_getitem, circular_pairwise and circular_windowed for lists, strings, numpy arrays and other indexable containers, with optional Rust iterators."
 license: MIT
 keywords:
+  - "itertools"
+  - "circular"
   - "indexing"
-  - "selection"
   - "python"
-version: "0.1.0"
-date-released: "2026-10-15"
+version: "0.2.0"
+date-released: "2026-10-19"
