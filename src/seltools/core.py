@@ -17,6 +17,7 @@ versions from ``_seltools`` when that is installed.
 
 from collections.abc import Iterator
 from itertools import cycle, islice, pairwise, repeat, tee
+from operator import getitem, index
 from typing import Protocol
 
 
@@ -58,6 +59,7 @@ def circular_windowed[T](data: Indexable[T], n: int, /) -> Iterator[tuple[T, ...
     >>> list(circular_windowed("abcd", 3))
     [('a', 'b', 'c'), ('b', 'c', 'd'), ('c', 'd', 'a'), ('d', 'a', 'b')]
     """
+    n = index(n)
     if n < 0:
         raise ValueError("n must be >= 0")
     size = len(data)
@@ -70,4 +72,5 @@ def circular_windowed[T](data: Indexable[T], n: int, /) -> Iterator[tuple[T, ...
 
 def _laps[T](data: Indexable[T], count: int) -> Iterator[T]:
     """``data[0], data[1], ...`` going round, `count` items in all."""
-    return map(data.__getitem__, islice(cycle(range(len(data))), count))
+    # operator.getitem is data[i] exactly: type slots, builtin errors
+    return map(getitem, repeat(data), islice(cycle(range(len(data))), count))

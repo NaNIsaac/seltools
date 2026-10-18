@@ -1,0 +1,9 @@
+{% extends "!layout.html" %}
+{# the theme's footer states the PSF documentation license; this project is MIT #}
+{% block footer %}
+    <div class="footer">
+    &copy; Copyright {{ copyright|e }}. MIT License.
+    <br>
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> {{ sphinx_version|e }} and python-docs-theme.
+    </div>
+{% endblock %}

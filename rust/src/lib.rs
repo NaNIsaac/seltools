@@ -3,15 +3,17 @@
 
 use std::collections::VecDeque;
 
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyMemoryError, PyValueError};
 use pyo3::ffi;
 use pyo3::prelude::*;
+use pyo3::{PyTraverseError, PyVisit};
 use pyo3::types::PyTuple;
 
 /// Iterator returned by `circular_pairwise` and `circular_windowed`.
 #[pyclass(module = "_seltools")]
 struct CircularWindowed {
-    data: Py<PyAny>,
+    // None once the garbage collector has cleared it
+    data: Option<Py<PyAny>>,
     size: usize,
     // has sq_item: index with a C integer instead of a new Python int per read
     is_sequence: bool,
@@ -43,11 +45,14 @@ impl CircularWindowed {
     }
 
     fn __next__<'py>(&mut self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyTuple>>> {
+        let Some(data) = &self.data else {
+            return Ok(None);
+        };
         if self.produced == self.size {
             return Ok(None);
         }
         // read lazily, so an error from data[i] surfaces on the window that needs it
-        let data = self.data.bind(py).clone();
+        let data = data.bind(py).clone();
         if self.produced > 0 && self.n > 0 {
             self.window.pop_front();
             self.read_next(&data)?;
@@ -58,18 +63,34 @@ impl CircularWindowed {
         self.produced += 1;
         PyTuple::new(py, self.window.iter().map(|item| item.bind(py))).map(Some)
     }
+
+    fn __traverse__(&self, visit: PyVisit<'_>) -> Result<(), PyTraverseError> {
+        visit.call(&self.data)?;
+        for item in &self.window {
+            visit.call(item)?;
+        }
+        Ok(())
+    }
+
+    fn __clear__(&mut self) {
+        self.data = None;
+        self.window.clear();
+    }
 }
 
 fn windowed(data: &Bound<'_, PyAny>, n: usize) -> PyResult<CircularWindowed> {
+    // a failed allocation would abort the interpreter; raise MemoryError like tee() does
+    let mut window = VecDeque::new();
+    window.try_reserve_exact(n).map_err(|_| PyMemoryError::new_err(()))?;
     Ok(CircularWindowed {
-        data: data.clone().unbind(),
+        data: Some(data.clone().unbind()),
         size: data.len()?,
         // SAFETY: data is a live object; PySequence_Check only reads its type slots
         is_sequence: unsafe { ffi::PySequence_Check(data.as_ptr()) } == 1,
         n,
         produced: 0,
         next_index: 0,
-        window: VecDeque::with_capacity(n),
+        window,
     })
 }
 

@@ -1,4 +1,6 @@
+import gc
 import importlib.util
+import weakref
 from itertools import chain, cycle, islice, pairwise
 
 import numpy as np
@@ -98,5 +100,29 @@ def test_errors_like_builtins(impl):
         impl.circular_pairwise(5)
     with pytest.raises(KeyError):
         list(impl.circular_pairwise({0: "a", 2: "b"}))
+    with pytest.raises(TypeError, match="not subscriptable"):
+        list(impl.circular_pairwise(LenOnly()))
+    with pytest.raises(TypeError):
+        impl.circular_windowed("ab", 2.0)
+    with pytest.raises(MemoryError):
+        impl.circular_windowed("ab", 10**18)
     with pytest.raises(IndexError):
         circular_getitem([], 0)
+
+
+class LenOnly:
+    def __len__(self):
+        return 3
+
+
+@pytest.mark.parametrize("impl", IMPLS)
+def test_reference_cycle_is_collected(impl):
+    class Box(list):
+        pass
+
+    box = Box("ab")
+    box.append(impl.circular_pairwise(box))
+    ref = weakref.ref(box)
+    del box
+    gc.collect()
+    assert ref() is None
