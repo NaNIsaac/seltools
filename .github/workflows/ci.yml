@@ -1,0 +1,150 @@
+name: seltools
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-pure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-pure
+          path: dist
+
+  build-rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x86_64, os: ubuntu-latest, target: x86_64 }
+          - { name: linux-aarch64, os: ubuntu-latest, target: aarch64 }
+          - { name: macos-x86_64, os: macos-15-intel, target: x86_64 }
+          - { name: macos-arm64, os: macos-latest, target: aarch64 }
+          - { name: windows-x86_64, os: windows-latest, target: x64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        if: runner.os != 'Linux'  # manylinux containers bring their own
+        with:
+          python-version: |
+            3.14
+            3.14t
+      - uses: PyO3/maturin-action@v1
+        with:
+          working-directory: rust
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out ../dist --interpreter 3.14 3.14t
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-rs-${{ matrix.name }}
+          path: dist
+
+  sdist-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: PyO3/maturin-action@v1
+        with:
+          working-directory: rust
+          command: sdist
+          args: --out ../dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-rs-sdist
+          path: dist
+
+  test:
+    needs: [build-pure, build-rust]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-latest, windows-latest]
+        python: ["3.14+gil", "3.14t"]  # bare 3.14 may resolve to a free-threaded build
+        mode: [pure, rust]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - uses: astral-sh/setup-uv@v10
+      # run outside the checkout so the installed wheel is tested, not src
+      - name: Install into a clean venv
+        working-directory: ${{ runner.temp }}
+        run: |
+          cp "$GITHUB_WORKSPACE/test_seltools.py" .
+          uv venv --python ${{ matrix.python }}
+          uv pip install pytest numpy more-itertools
+          spec=seltools; [ "${{ matrix.mode }}" = rust ] && spec='seltools[rust]'
+          uv pip install --no-index --find-links "$GITHUB_WORKSPACE/dist" "$spec"
+      - name: Test
+        working-directory: ${{ runner.temp }}
+        run: |
+          py=.venv/bin/python; [ -x "$py" ] || py=.venv/Scripts/python.exe
+          "$py" -c "
+          import importlib.util, sys, sysconfig, seltools
+          assert bool(sysconfig.get_config_var('Py_GIL_DISABLED')) == '${{ matrix.python }}'.endswith('t')
+          rust = importlib.util.find_spec('_seltools') is not None
+          assert rust == ('${{ matrix.mode }}' == 'rust'), rust
+          if rust:
+              import _seltools
+              assert seltools.circular_pairwise is _seltools.circular_pairwise
+          print(sys.version)
+          "
+          "$py" -m pytest --doctest-modules --pyargs seltools test_seltools.py
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --locked --group docs
+      - run: uv run sphinx-build -W -b doctest docs docs/_build/doctest
+      - run: uv run sphinx-build -W -b html docs docs/_build/html
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test, sdist-rust, docs]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi  # add required reviewers to this environment in repo settings
+      url: https://pypi.org/p/seltools
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - name: Check every file matches the tag version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          ls dist
+          test "$(ls dist | grep -cv -- "-$version[-.]")" = 0
+          mkdir dist-rs && mv dist/seltools_rs-* dist-rs/
+      # seltools-rs first, so seltools[rust] resolves as soon as seltools appears
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist-rs
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
