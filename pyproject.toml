@@ -13,6 +13,10 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = ["more-itertools", "numpy", "pytest"]
+rust = ["seltools-rs"]
+
+[tool.uv.sources]
+seltools-rs = { path = "rust" }
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"

@@ -1,0 +1,6 @@
+from collections.abc import Iterator
+
+from seltools.core import Indexable
+
+def circular_pairwise[T](data: Indexable[T], /) -> Iterator[tuple[T, T]]: ...
+def circular_windowed[T](data: Indexable[T], n: int, /) -> Iterator[tuple[T, ...]]: ...

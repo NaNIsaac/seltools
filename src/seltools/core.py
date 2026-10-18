@@ -8,10 +8,15 @@ elements.
 - Each name is ``circular_`` + the stdlib or more_itertools name of the
   non-wrapping version, with the same argument order.
 - Elements come back as ``data[i]`` returns them; nothing is converted.
-- Multi-element results are lazy iterators, like itertools.
+- Multi-element results are lazy iterators, like itertools, and read each
+  index once per lap.
+
+This module is the reference implementation. ``seltools`` swaps in the Rust
+versions from ``_seltools`` when that is installed.
 """
 
 from collections.abc import Iterator
+from itertools import cycle, islice, pairwise, repeat, tee
 from typing import Protocol
 
 
@@ -42,8 +47,7 @@ def circular_pairwise[T](data: Indexable[T], /) -> Iterator[tuple[T, T]]:
     >>> list(circular_pairwise("abc"))
     [('a', 'b'), ('b', 'c'), ('c', 'a')]
     """
-    n = len(data)
-    return ((data[i], data[(i + 1) % n]) for i in range(n))
+    return pairwise(_laps(data, len(data) + 1))
 
 
 def circular_windowed[T](data: Indexable[T], n: int, /) -> Iterator[tuple[T, ...]]:
@@ -57,4 +61,13 @@ def circular_windowed[T](data: Indexable[T], n: int, /) -> Iterator[tuple[T, ...
     if n < 0:
         raise ValueError("n must be >= 0")
     size = len(data)
-    return (tuple(data[(i + k) % size] for k in range(n)) for i in range(size))
+    if n == 0:
+        return repeat((), size)
+    # n staggered copies of one stream, so each data[i] is read once per lap
+    streams = tee(_laps(data, size + n - 1), n)
+    return zip(*(islice(s, k, None) for k, s in enumerate(streams)))
+
+
+def _laps[T](data: Indexable[T], count: int) -> Iterator[T]:
+    """``data[0], data[1], ...`` going round, `count` items in all."""
+    return map(data.__getitem__, islice(cycle(range(len(data))), count))
