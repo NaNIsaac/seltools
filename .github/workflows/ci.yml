@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.0  # no moving major tag
       - run: uv build
       - uses: actions/upload-artifact@v7
         with:
@@ -85,7 +85,7 @@ jobs:
           pattern: dist-*
           merge-multiple: true
           path: dist
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.0  # no moving major tag
       # run outside the checkout so the installed wheel is tested, not src
       - name: Install into a clean venv
         working-directory: ${{ runner.temp }}
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.0  # no moving major tag
       - run: uv sync --locked --group docs
       - run: uv run sphinx-build -W -b doctest docs docs/_build/doctest
       - run: uv run sphinx-build -W -b html docs docs/_build/html
