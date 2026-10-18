@@ -1,3 +1,3 @@
-from seltools.core import Selection
+from seltools.core import Selection, circular_pairs, cyclic
 
-__all__ = ["Selection"]
+__all__ = ["Selection", "circular_pairs", "cyclic"]
