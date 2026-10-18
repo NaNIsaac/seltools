@@ -1,12 +1,13 @@
-:mod:`!seltools` --- Wrap-around access for anything with ``len()`` and ``[]``
-==============================================================================
+:mod:`!seltools` --- Selections and wrap-around access for anything with ``len()`` and ``[]``
+=============================================================================================
 
 .. module:: seltools
-   :synopsis: Circular getitem, pairwise and windowed for indexable containers.
+   :synopsis: Reusable selections and circular getitem, pairwise and windowed for indexable containers.
 
 --------------
 
-This module provides a small set of tools for walking a container as if its
+This module keeps a selection, ``data[key]``, as a reusable value, and
+provides a small set of tools for walking a container as if its
 end were joined to its beginning: the edges of a closed polygon, the neighbours
 of a vertex in a ring buffer, the windows of a periodic signal.
 
@@ -37,6 +38,52 @@ Tool                            Arguments         Results                       
 :func:`circular_pairwise`       data              (d[0], d[1]), ..., (d[-1], d[0])            ``circular_pairwise('ABC') → AB BC CA``
 :func:`circular_windowed`       data, n           one *n*-tuple starting at each index        ``circular_windowed('ABCD', 3) → ABC BCD CDA DAB``
 ==============================  ================  ==========================================  ===============================================================
+
+
+.. _seltools-selection:
+
+Selection
+---------
+
+.. class:: Selection(key)
+
+   ``data[key]`` as a value.  Build the key once and apply it to any number
+   of containers by calling the selection, the way a region of interest
+   keeps the bounds of a rectangle.  Selections are frozen
+   :mod:`dataclasses`: they compare equal when their keys do, and are
+   hashable when their keys are.
+
+   .. attribute:: key
+
+      The index, slice, tuple of per-axis keys, or fancy index.
+
+   Calling a selection returns ``data[key]`` when *data* accepts the key, so
+   NumPy basic indexing still gives a view::
+
+      >>> import numpy as np
+      >>> from seltools import Selection
+      >>> roi = Selection((slice(1, 3), slice(0, 2)))
+      >>> image = np.arange(12).reshape(3, 4)
+      >>> roi(image)
+      array([[4, 5],
+             [8, 9]])
+      >>> np.shares_memory(roi(image), image)
+      True
+
+   A list or array of integers or booleans (fancy indexing) also works on
+   containers that only take a single index, such as :class:`list`,
+   :class:`tuple`, :class:`str` and :class:`range`.  The picks then come back
+   as a :class:`list` of ``data[i]``, the same elements NumPy would select::
+
+      >>> ends = Selection([0, -1])
+      >>> ends('abc'), ends(range(10)), ends(np.array([10, 20, 30]))
+      (['a', 'c'], [0, 9], array([10, 30]))
+      >>> Selection([True, False, True])('abc')
+      ['a', 'c']
+
+   A boolean mask must be as long as *data*, or :exc:`IndexError` is raised.
+   Tuples are passed through unchanged, so indexing several axes at once
+   needs a container that supports it, such as an ndarray.
 
 
 .. _seltools-functions:
@@ -217,13 +264,12 @@ The extension supports free-threaded builds and does not re-enable the GIL.
 What is not here
 ----------------
 
-Tools that do not need to wrap around are left to the libraries that already
-provide them for any container:
+Other tools that do not need to wrap around are left to the libraries that
+already provide them for any container:
 
 ==========================================  =====================================================
 Need                                        Use
 ==========================================  =====================================================
-``data[key]`` as a callable                 :func:`operator.itemgetter`
 Index of the largest or smallest item       :func:`more_itertools.argmax`, :func:`more_itertools.argmin`
 Chunks that keep the container type         :func:`more_itertools.sliced`
 Pairs and windows without wrapping          :func:`itertools.pairwise`, :func:`more_itertools.windowed`

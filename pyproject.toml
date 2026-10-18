@@ -1,7 +1,7 @@
 [project]
 name = "seltools"
 version = "0.2.0"
-description = "Wrap-around pairwise, windowed and getitem for anything with len() and []"
+description = "Reusable selections and wrap-around pairwise, windowed and getitem for anything with len() and []"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]

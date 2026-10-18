@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
-title: "seltools: wrap-around access for anything with len() and []"
+title: "seltools: reusable selections and wrap-around access for anything with len() and []"
 authors:
   - family-names: Yong
     given-names: Isaac

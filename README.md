@@ -1,6 +1,6 @@
 # seltools
 
-Wrap-around access for anything with `len()` and `[]`.
+Reusable selections and wrap-around access for anything with `len()` and `[]`.
 
 `itertools` and `more_itertools` cannot wrap around: going past the end needs the length of the data and random access to its start, and an iterator has neither. seltools asks for exactly those two things, so a list, tuple, str, range, NumPy array or any class defining `__len__` and `__getitem__` gives the same elements.
 
@@ -13,6 +13,26 @@ Wrap-around access for anything with `len()` and `[]`.
 >>> list(circular_windowed("ABCD", 3))
 [('A', 'B', 'C'), ('B', 'C', 'D'), ('C', 'D', 'A'), ('D', 'A', 'B')]
 ```
+
+## Selection
+
+`Selection(key)` keeps an index as a value, the way a region of interest keeps its bounds: build it once, apply it to any container, store or compare it.
+
+```python
+>>> import numpy as np
+>>> from seltools import Selection
+>>> roi = Selection((slice(1, 3), slice(0, 2)))
+>>> roi(np.arange(12).reshape(3, 4))
+array([[4, 5],
+       [8, 9]])
+>>> ends = Selection([0, -1])
+>>> ends("abc"), ends(np.array([10, 20, 30]))
+(['a', 'c'], array([10, 30]))
+>>> Selection([True, False, True])("abc")
+['a', 'c']
+```
+
+Any key the container accepts is passed through as `data[key]`, so ndarray slices stay views. A list or array of ints or bools (fancy indexing) also works on list, tuple, str, range and anything else that takes a single index; the picks then come back as a list.
 
 ## Install
 
@@ -39,7 +59,7 @@ All tools follow the same rules:
 - Elements come back exactly as `data[i]` returns them. Nothing is converted: an ndarray row is still a view.
 - Multi-element results are lazy iterators that read each index once per lap, and raise the same errors as `data[i]` would.
 
-Tools that do not need to wrap around are left to the libraries that already have them: `operator.itemgetter`, `more_itertools.argmax` / `argmin`, `more_itertools.sliced`, `more_itertools.circular_shifts`.
+Other non-wrapping tools are left to the libraries that already have them: `more_itertools.argmax` / `argmin`, `more_itertools.sliced`, `more_itertools.circular_shifts`.
 
 ## Rust iterators
 
