@@ -1,5 +1,7 @@
 # seltools
 
+[![Tests](https://github.com/NaNIsaac/seltools/actions/workflows/ci.yml/badge.svg)](https://github.com/NaNIsaac/seltools/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Reusable selections and wrap-around access for anything with `len()` and `[]`.
 
 `itertools` and `more_itertools` cannot wrap around: going past the end needs the length of the data and random access to its start, and an iterator has neither. seltools asks for exactly those two things, so a list, tuple, str, range, NumPy array or any class defining `__len__` and `__getitem__` gives the same elements.
