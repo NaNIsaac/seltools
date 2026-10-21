@@ -45,6 +45,13 @@ pip install "seltools[rust]"  # adds the compiled iterators from seltools-rs
 
 Requires Python 3.14.
 
+From a clone of this repository, install it into a throwaway environment and check that it imports and wraps around. The command exits non-zero if it does not.
+
+<!-- test -->
+```sh
+uv run --with . python -c "from seltools import circular_getitem; assert circular_getitem('ABC', 4) == 'B'"
+```
+
 ## Tools
 
 | Tool | Results | Non-wrapping version |
