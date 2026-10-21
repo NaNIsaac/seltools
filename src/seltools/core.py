@@ -55,12 +55,16 @@ class Selection:
         try:
             return data[self.key]
         except TypeError:
-            if isinstance(self.key, (int, slice, tuple, str, bytes)) or not hasattr(self.key, "__iter__"):
+            if isinstance(self.key, (int, slice, tuple, str, bytes)) or not hasattr(
+                self.key, "__iter__"
+            ):
                 raise
         key = self.key.tolist() if hasattr(self.key, "tolist") else list(self.key)
         if key and all(isinstance(k, bool) for k in key):  # boolean mask, as numpy
             if len(key) != len(data):
-                raise IndexError(f"boolean index of length {len(key)} for data of length {len(data)}")
+                raise IndexError(
+                    f"boolean index of length {len(key)} for data of length {len(data)}"
+                )
             return [data[i] for i, keep in enumerate(key) if keep]
         return [data[index(i)] for i in key]
 

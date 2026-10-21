@@ -49,7 +49,11 @@ def test_package_uses_rust_when_installed():
     assert seltools.circular_windowed is expected.circular_windowed
 
 
-@pytest.mark.parametrize("data", [ROWS, tuple(ROWS), np.array(ROWS), Counted(ROWS)], ids=["list", "tuple", "ndarray", "getitem-only"])
+@pytest.mark.parametrize(
+    "data",
+    [ROWS, tuple(ROWS), np.array(ROWS), Counted(ROWS)],
+    ids=["list", "tuple", "ndarray", "getitem-only"],
+)
 @pytest.mark.parametrize(
     ("key", "expected"),
     [
@@ -89,16 +93,26 @@ def test_selection_errors_like_builtins():
         Selection((0, 1))([[1, 2]])  # several axes need numpy
 
 
-@pytest.mark.parametrize("data", [ROWS, tuple(ROWS), np.array(ROWS)], ids=["list", "tuple", "ndarray"])
+@pytest.mark.parametrize(
+    "data", [ROWS, tuple(ROWS), np.array(ROWS)], ids=["list", "tuple", "ndarray"]
+)
 def test_getitem_any_container(data):
     assert plain(circular_getitem(data, 4)) == [2, 3]
     assert plain(circular_getitem(data, -4)) == [4, 5]
 
 
 @pytest.mark.parametrize("impl", IMPLS)
-@pytest.mark.parametrize("data", [ROWS, tuple(ROWS), np.array(ROWS), Counted(ROWS)], ids=["list", "tuple", "ndarray", "getitem-only"])
+@pytest.mark.parametrize(
+    "data",
+    [ROWS, tuple(ROWS), np.array(ROWS), Counted(ROWS)],
+    ids=["list", "tuple", "ndarray", "getitem-only"],
+)
 def test_same_elements_any_container(impl, data):
-    assert [plain(p) for p in impl.circular_pairwise(data)] == [(ROWS[0], ROWS[1]), (ROWS[1], ROWS[2]), (ROWS[2], ROWS[0])]
+    assert [plain(p) for p in impl.circular_pairwise(data)] == [
+        (ROWS[0], ROWS[1]),
+        (ROWS[1], ROWS[2]),
+        (ROWS[2], ROWS[0]),
+    ]
     assert [plain(w) for w in impl.circular_windowed(data, 3)][-1] == (ROWS[2], ROWS[0], ROWS[1])
 
 
