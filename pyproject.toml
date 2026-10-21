@@ -34,7 +34,7 @@ seltools-rs = { path = "rust" }
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
-testpaths = ["src", "test_seltools.py"]
+testpaths = ["src", "tests", "test_seltools.py"]
 
 [tool.ruff]
 line-length = 100
