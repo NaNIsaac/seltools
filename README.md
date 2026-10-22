@@ -38,10 +38,13 @@ Any key the container accepts is passed through as `data[key]`, so ndarray slice
 
 ## Install
 
+Not published to PyPI yet: `seltools` and `seltools-rs` both return 404 on PyPI (checked 2026-10-23). The release workflow publishes them when a `v*` tag is pushed. Until then, install the pure-Python package from a clone:
+
 ```bash
-pip install seltools          # pure Python, no dependencies
-pip install "seltools[rust]"  # adds the compiled iterators from seltools-rs
+pip install .
 ```
+
+Once published, `pip install seltools` is the pure-Python package with no dependencies, and `pip install "seltools[rust]"` adds the compiled iterators from `seltools-rs`.
 
 Requires Python 3.14.
 
