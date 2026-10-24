@@ -101,7 +101,7 @@ jobs:
       - name: Install into a clean venv
         working-directory: ${{ runner.temp }}
         run: |
-          cp "$GITHUB_WORKSPACE/test_seltools.py" .
+          cp -r "$GITHUB_WORKSPACE/test_seltools.py" "$GITHUB_WORKSPACE/tests" .
           py='${{ matrix.python }}'
           uv python install "${py%+gil}"  # uv does not download for a +gil request
           uv venv --python "$py"
@@ -122,7 +122,7 @@ jobs:
               assert seltools.circular_pairwise is _seltools.circular_pairwise
           print(sys.version)
           "
-          "$py" -m pytest --doctest-modules --pyargs seltools test_seltools.py
+          "$py" -m pytest --doctest-modules --pyargs seltools test_seltools.py tests
 
   docs:
     runs-on: ubuntu-latest
