@@ -1,6 +1,6 @@
 # seltools
 
-[![Tests](https://github.com/NaNIsaac/seltools/actions/workflows/ci.yml/badge.svg)](https://github.com/NaNIsaac/seltools/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Tests](https://github.com/NaNIsaac/seltools/actions/workflows/ci.yml/badge.svg)](https://github.com/NaNIsaac/seltools/actions/workflows/ci.yml)
 
 Reusable selections and wrap-around access for anything with `len()` and `[]`.
 
