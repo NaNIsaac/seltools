@@ -1,0 +1,52 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  # The release event runs ci.yml on the tag ref, so it builds and tests every OS and
+  # architecture; the files uploaded are the ones those tests installed.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  # seltools-rs first, so seltools[rust] resolves as soon as seltools appears
+  publish-rs:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write  # PyPI Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: dist-rs-*
+          merge-multiple: true
+          path: dist
+      - name: Check every file matches the tag version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          ls dist
+          test "$(ls dist | grep -cv -- "-$version[-.]")" = 0
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  publish:
+    needs: publish-rs
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write  # PyPI Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist-pure
+          path: dist
+      - name: Check every file matches the tag version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          ls dist
+          test "$(ls dist | grep -cv -- "-$version[-.]")" = 0
+      - uses: pypa/gh-action-pypi-publish@release/v1
