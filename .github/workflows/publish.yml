@@ -17,7 +17,8 @@ jobs:
   publish-rs:
     needs: ci
     runs-on: ubuntu-latest
-    environment: release
+    # PyPI rejects a second pending publisher with the same repository, workflow and environment
+    environment: release-rs
     permissions:
       id-token: write  # PyPI Trusted Publishing
     steps:
