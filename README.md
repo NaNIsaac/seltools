@@ -38,7 +38,7 @@ Any key the container accepts is passed through as `data[key]`, so ndarray slice
 
 ## Install
 
-Not published to PyPI yet: `seltools` and `seltools-rs` both return 404 on PyPI (checked 2026-10-23). The release workflow publishes them when a `v*` tag is pushed. Until then, install the pure-Python package from a clone:
+Not published to PyPI yet: `seltools` and `seltools-rs` both return 404 on PyPI (checked 2026-10-23). `publish.yml` uploads both when a GitHub release is published for a `v*` tag. Until then, install the pure-Python package from a clone:
 
 ```bash
 pip install .
