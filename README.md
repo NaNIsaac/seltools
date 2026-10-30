@@ -16,6 +16,19 @@ Reusable selections and wrap-around access for anything with `len()` and `[]`.
 [('A', 'B', 'C'), ('B', 'C', 'D'), ('C', 'D', 'A'), ('D', 'A', 'B')]
 ```
 
+## Visual quickstart
+
+![Circular indexing connects the end of a sequence back to its beginning; the abbreviated labels below represent tuples, not concatenated return values.](docs/media/readme-overview.svg)
+
+Circular indexing connects the end of a sequence back to its beginning; the abbreviated labels below represent tuples, not concatenated return values.
+
+```python
+from seltools import circular_pairwise, circular_windowed
+
+assert list(circular_pairwise('ABCD')) == [('A', 'B'), ('B', 'C'), ('C', 'D'), ('D', 'A')]
+assert list(circular_windowed('ABCD', 3))[-1] == ('D', 'A', 'B')
+```
+
 ## Selection
 
 `Selection(key)` keeps an index as a value, the way a region of interest keeps its bounds: build it once, apply it to any container, store or compare it.
