@@ -25,8 +25,8 @@ Circular indexing connects the end of a sequence back to its beginning; the abbr
 ```python
 from seltools import circular_pairwise, circular_windowed
 
-assert list(circular_pairwise('ABCD')) == [('A', 'B'), ('B', 'C'), ('C', 'D'), ('D', 'A')]
-assert list(circular_windowed('ABCD', 3))[-1] == ('D', 'A', 'B')
+assert list(circular_pairwise("ABCD")) == [("A", "B"), ("B", "C"), ("C", "D"), ("D", "A")]
+assert list(circular_windowed("ABCD", 3))[-1] == ("D", "A", "B")
 ```
 
 ## Selection
