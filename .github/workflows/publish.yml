@@ -3,19 +3,31 @@ name: Publish to PyPI
 on:
   release:
     types: [published]
+  # Runs the gates alone, without an upload, to check them off a release.
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   # The release event runs ci.yml on the tag ref, so it builds and tests every OS and
-  # architecture; the files uploaded are the ones those tests installed.
+  # architecture; the seltools-rs files uploaded are the ones those tests installed.
   ci:
+    if: github.event_name == 'release'
     uses: ./.github/workflows/ci.yml
+
+  gates:
+    uses: NaNIsaac/.github/.github/workflows/publish-gates.yml@e2bfb9b4aa7820e8efe43afddf2d2308c6069ae3
+    permissions:
+      contents: read
+    with:
+      import-name: seltools
+      python-version: "3.14"
 
   # seltools-rs first, so seltools[rust] resolves as soon as seltools appears
   publish-rs:
-    needs: ci
+    needs: [ci, gates]
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     environment: release
     permissions:
@@ -34,15 +46,17 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
 
   publish:
-    needs: publish-rs
+    needs: [publish-rs, gates]
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     environment: release
     permissions:
       id-token: write  # PyPI Trusted Publishing
     steps:
+      # The files the gates checked, not the ci.yml build
       - uses: actions/download-artifact@v8
         with:
-          name: dist-pure
+          name: publish-gates-dist
           path: dist
       - name: Check every file matches the tag version
         run: |
