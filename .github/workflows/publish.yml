@@ -3,8 +3,15 @@ name: Publish to PyPI
 on:
   release:
     types: [published]
-  # Runs the gates alone, without an upload, to check them off a release.
+  # Runs the gates of one package alone, without an upload, to check them off a release.
+  # seltools-rs needs ci.yml's builds, so that choice runs the full OS matrix.
   workflow_dispatch:
+    inputs:
+      package:
+        description: Package whose gates run
+        type: choice
+        options: [seltools, seltools-rs]
+        default: seltools
 
 permissions:
   contents: read
@@ -13,20 +20,35 @@ jobs:
   # The release event runs ci.yml on the tag ref, so it builds and tests every OS and
   # architecture; the seltools-rs files uploaded are the ones those tests installed.
   ci:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || inputs.package == 'seltools-rs'
     uses: ./.github/workflows/ci.yml
 
   gates:
-    uses: NaNIsaac/.github/.github/workflows/publish-gates.yml@e2bfb9b4aa7820e8efe43afddf2d2308c6069ae3
+    if: github.event_name == 'release' || inputs.package == 'seltools'
+    uses: NaNIsaac/.github/.github/workflows/publish-gates.yml@3c147080c0d6968e7ec3fa6e5a848f5ae7bce7c8
     permissions:
       contents: read
     with:
       import-name: seltools
       python-version: "3.14"
 
+  # The seltools-rs files ci.yml built, checked for secrets, credential file names and
+  # home-folder paths; maturin builds them, so the gates only scan (leak-only)
+  gates-rs:
+    needs: ci
+    uses: NaNIsaac/.github/.github/workflows/publish-gates.yml@3c147080c0d6968e7ec3fa6e5a848f5ae7bce7c8
+    permissions:
+      contents: read
+    with:
+      leak-only-artifacts: dist-rs-*
+      # GitHub runner homes in the SBOM maturin writes into the Linux and macOS wheels
+      path-allowlist: |
+        /home/runner
+        /Users/runner
+
   # seltools-rs first, so seltools[rust] resolves as soon as seltools appears
   publish-rs:
-    needs: [ci, gates]
+    needs: [ci, gates, gates-rs]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     environment: release
